@@ -95,9 +95,8 @@ To ensure fairness:
 
 ## 📩 Contact
 
-If you face issues with the repository or evaluation:
-- Open an **issue** in this repo, or  
-- Contact the repository maintainer directly.
+If you face issues with the repository or evaluation: 
+- Contact me at tasneem.mselim@gmail.com 
 
 ---
 
