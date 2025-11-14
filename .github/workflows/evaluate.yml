@@ -3,25 +3,26 @@ name: Evaluate Submission
 on:
   pull_request:
     paths:
-      - 'submission/*.csv'   # Only run on new submissions
+      - 'submissions/*.csv'  # Trigger only on submission CSVs
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
-      - name: Checkout repo
+      # 1️⃣ Checkout the public repo (PR branch)
+      - name: Checkout public repo
         uses: actions/checkout@v3
 
-      # 2️⃣ Download private test labels
-      - name: Download private test labels
-        uses: actions/download-artifact@v4
+      # 2️⃣ Checkout private repo (hidden test labels)
+      - name: Checkout private repo
+        uses: actions/checkout@v3
         with:
-          name: test_labels
-          path: private_data  # folder to place the file
+          repository: Tasneem-Selim-Researcher/FER-ML-Competition-Private
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: private_data
 
-      # 3️⃣ Set up Python
+      # 3️⃣ Setup Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -34,18 +35,20 @@ jobs:
       # 5️⃣ Evaluate all submissions
       - name: Evaluate submissions
         run: |
-          for file in submission/*.csv; do
+          mkdir -p results
+          for file in submissions/*.csv; do
             echo "Evaluating $file..."
-            python evaluate.py "$file" "private/test_labels.csv"
+            python evaluate.py "$file" "private_data/test_labels.csv" >> results/results.csv
           done
 
+      # 6️⃣ Commit & push updated leaderboard
       - name: Commit leaderboard
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git checkout main
-          git add results.csv
-          git commit -m "Update leaderboard from PR #${{ github.event.number }}" || echo "No changes"
+          git add results/results.csv
+          git commit -m "Update leaderboard from PR #${{ github.event.number }}" || echo "No changes to commit"
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
